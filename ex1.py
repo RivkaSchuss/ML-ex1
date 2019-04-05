@@ -12,10 +12,20 @@ def eucl_dist(a, b):
 
 
 def print_centroids(centroids, iter):
-    print("iter " + str(iter) + ": ", end=" ")
+    to_print = "iter " + str(iter) + ": "
+    length = len(centroids)
+    i = 0
     for centroid in centroids:
-        print(str(centroid) + " ", end=" ")
-    print()
+        to_print += "["
+        num_centroids = len(centroid) - 1
+        for index in range(num_centroids):
+            to_print += str(centroid[index]) + ", "
+        index += 1
+        to_print += str(centroid[index]) + "]"
+        if i < length - 1:
+            to_print += ", "
+        i += 1
+    print(to_print)
 
 
 def create_centroids(k):
@@ -39,18 +49,29 @@ def update_centroids(centr_indexes, centroids):
             centroid = []
             for j in centroids[i]:
                 update = j / centr_indexes[i]
-
-                centroid.append(round(update, 2))
+                centroid.append(np.floor(update*100)/100)
             updated_centroids.append(centroid)
     return updated_centroids
 
 
+def round_initial_centroids(centroids):
+    centroids_rounded = []
+    for centroid_arr in centroids:
+        rounded = []
+        for number in centroid_arr:
+            rounded.append(np.floor(number * 100) / 100)
+        centroids_rounded.append(rounded)
+    return centroids_rounded
+
+
 def run_k_means(num_iterations, centroids_current, k, x):
     loss = []
+
+    centroids_current = round_initial_centroids(centroids_current)
+
     for iteration in range(num_iterations):
         iteration_loss = 0
-        labels_pic = []
-
+        labels = []
         centr_indexes, centroids_updated = create_centroids(k)
         num_centroids = len(centroids_current)
         for example in x:
@@ -62,10 +83,11 @@ def run_k_means(num_iterations, centroids_current, k, x):
 
             index = distance.index(min(distance))
             iteration_loss += distance[index]
-            for i in range(len(centroids_updated[index])):
-                centroids_updated[index][i] += example[i]
+            current_centroid = centroids_updated[index]
+            for i in range(len(current_centroid)):
+                current_centroid[i] += example[i]
             centr_indexes[index] += 1
-            labels_pic.append(centroids_current[index])
+            labels.append(centroids_current[index])
 
         updated_centroids = update_centroids(centr_indexes, centroids_updated)
         print_centroids(centroids_current, iteration)
@@ -73,7 +95,7 @@ def run_k_means(num_iterations, centroids_current, k, x):
         iteration_loss = iteration_loss / float(len(x))
         loss.append(iteration_loss)
 
-    return labels_pic, loss
+    return labels, loss
 
 
 def plot(x, vector):
@@ -99,7 +121,7 @@ def run_for_each_value():
         print("k=" + str(k))
         centroids = init_centroids(x, k)
         vector, loss = run_k_means(num_iterations, centroids, k, x)
-        plot(x, vector)
+        #plot(x, vector)
 
 
 if __name__ == '__main__':
