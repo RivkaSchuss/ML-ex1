@@ -34,6 +34,8 @@ def print_centroids(centroids, iter):
 def create_centroids(k):
     centroids = []
     indexes = []
+    
+    # basic initializing of the centroids, and indexes
     for i in range(k):
         indexes.append(0)
         centroids.append([])
@@ -58,31 +60,55 @@ def update_centroids(centr_indexes, centroids):
 def run_k_means(num_iterations, centroids_current, k, x):
     loss = []
 
+    # running each iteration
     for iteration in range(num_iterations):
         loss_per_iter = 0
         labels = []
+
+        # creating the centroids and indexes
         centroids_updated, centr_indexes = create_centroids(k)
         num_centroids = len(centroids_current)
+
+        # iterating over the data of the image
         for example in x:
             distance = []
-            for i in range(num_centroids):
-                distance.append(0)
+            # for each centroid, calculate the distance
             for centroid in range(num_centroids):
+                distance.append(0)
+                # calculating the euclides distance from each value of the image, to the current centroids
                 distance[centroid] = eucl_dist(example, centroids_current[centroid])
 
+            # setting the index of each centroid to be the min distance
             index = distance.index(min(distance))
+
+            # adding the min distance to the loss
             loss_per_iter += distance[index]
+
+            # declaring the current centroids to be the minimum centroids in the list
             current_centroid = centroids_updated[index]
-            for i in range(len(current_centroid)):
-                current_centroid[i] += example[i]
+
+            # iterating over the minimum centroids
+            for centr in range(len(current_centroid)):
+                current_centroid[centr] += example[centr]
+
+            # adding 1 to the indexes
             centr_indexes[index] += 1
+
+            # adding the appropriate centroids to the labels for the image
             labels.append(centroids_current[index])
 
+        # updating the centroids with the new calculated centroids
         updated_centroids = update_centroids(centr_indexes, centroids_updated)
+
+        # printing
         print_centroids(centroids_current, iteration)
+
+        # resetting the centroids to be the centroids recently calculated, for the next iteration
         centroids_current = np.array(updated_centroids)
-        iteration_loss = loss_per_iter / float(len(x))
-        loss.append(iteration_loss)
+
+        # calculating the loss
+        loss_per_iter = loss_per_iter / float(len(x))
+        loss.append(loss_per_iter)
 
     return labels, loss
 
@@ -104,10 +130,15 @@ def plot(x, vector):
 def run_for_each_value():
     num_iterations = 11
     k_values = [2, 4, 8, 16]
+
+    # getting the x from the image
     x = load.X
 
+    # running the k means algorithm for each value of k
     for k in k_values:
         print("k=" + str(k))
+
+        # getting the initial centroids
         centroids = init_centroids(x, k)
         vector, loss = run_k_means(num_iterations, centroids, k, x)
         # plot(x, vector)
