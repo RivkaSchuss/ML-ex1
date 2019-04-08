@@ -1,10 +1,13 @@
-from math import floor
 
 import numpy as np
 
 from init_centroids import init_centroids
 import load
 import matplotlib.pyplot as plt
+
+
+def round_floor(num):
+    return np.floor(num * 100) / 100
 
 
 def eucl_dist(a, b):
@@ -19,9 +22,9 @@ def print_centroids(centroids, iter):
         to_print += "["
         num_centroids = len(centroid) - 1
         for index in range(num_centroids):
-            to_print += str(centroid[index]) + ", "
+            to_print += str(round_floor(centroid[index])) + ", "
         index += 1
-        to_print += str(centroid[index]) + "]"
+        to_print += str(round_floor(centroid[index])) + "]"
         if i < length - 1:
             to_print += ", "
         i += 1
@@ -36,43 +39,29 @@ def create_centroids(k):
         centroids.append([])
         for j in range(3):
             centroids[i].append(round(0, 2))
-    return indexes, centroids
+    return centroids, indexes
 
 
 def update_centroids(centr_indexes, centroids):
     updated_centroids = []
     for i in range(len(centroids)):
         if centr_indexes[i] == 0:
-            temp_centroids = [round(centr, 2) for centr in centroids[i]]
-            updated_centroids.append(temp_centroids)
+            updated_centroids.append(centroids)
         else:
             centroid = []
             for j in centroids[i]:
-                update = j / centr_indexes[i]
-                centroid.append(np.floor(update*100)/100)
+                centroid.append(j / centr_indexes[i])
             updated_centroids.append(centroid)
     return updated_centroids
-
-
-def round_initial_centroids(centroids):
-    centroids_rounded = []
-    for centroid_arr in centroids:
-        rounded = []
-        for number in centroid_arr:
-            rounded.append(np.floor(number * 100) / 100)
-        centroids_rounded.append(rounded)
-    return centroids_rounded
 
 
 def run_k_means(num_iterations, centroids_current, k, x):
     loss = []
 
-    centroids_current = round_initial_centroids(centroids_current)
-
     for iteration in range(num_iterations):
-        iteration_loss = 0
+        loss_per_iter = 0
         labels = []
-        centr_indexes, centroids_updated = create_centroids(k)
+        centroids_updated, centr_indexes = create_centroids(k)
         num_centroids = len(centroids_current)
         for example in x:
             distance = []
@@ -82,7 +71,7 @@ def run_k_means(num_iterations, centroids_current, k, x):
                 distance[centroid] = eucl_dist(example, centroids_current[centroid])
 
             index = distance.index(min(distance))
-            iteration_loss += distance[index]
+            loss_per_iter += distance[index]
             current_centroid = centroids_updated[index]
             for i in range(len(current_centroid)):
                 current_centroid[i] += example[i]
@@ -92,7 +81,7 @@ def run_k_means(num_iterations, centroids_current, k, x):
         updated_centroids = update_centroids(centr_indexes, centroids_updated)
         print_centroids(centroids_current, iteration)
         centroids_current = np.array(updated_centroids)
-        iteration_loss = iteration_loss / float(len(x))
+        iteration_loss = loss_per_iter / float(len(x))
         loss.append(iteration_loss)
 
     return labels, loss
@@ -121,7 +110,7 @@ def run_for_each_value():
         print("k=" + str(k))
         centroids = init_centroids(x, k)
         vector, loss = run_k_means(num_iterations, centroids, k, x)
-        #plot(x, vector)
+        # plot(x, vector)
 
 
 if __name__ == '__main__':
